@@ -1,0 +1,26 @@
+{
+  "name": "cards-prototype",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev --port 1420",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "astro": "^4.12.2",
+    "@astrojs/check": "^0.8.2",
+    "typescript": "^5.5.3",
+    "@tauri-apps/api": ">=2.0.0-beta.0",
+    "@tauri-apps/plugin-shell": ">=2.0.0-beta.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": ">=2.0.0-beta.0",
+    "vite": "^5.3.1",
+    "typescript": "^5.2.2"
+  }
+}
