@@ -1,5 +1,5 @@
 {
-  "productName": "tauri-app",
+  "productName": "cards",
   "version": "0.0.0",
   "identifier": "com.cards.dev",
   "build": {
