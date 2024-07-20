@@ -11,6 +11,9 @@ importers:
       '@astrojs/check':
         specifier: ^0.8.2
         version: 0.8.2(typescript@5.5.3)
+      '@fontsource/roboto':
+        specifier: ^5.0.13
+        version: 5.0.13
       '@tauri-apps/api':
         specifier: '>=2.0.0-beta.0'
         version: 2.0.0-beta.15
@@ -340,6 +343,9 @@ packages:
     engines: {node: '>=12'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource/roboto@5.0.13':
+    resolution: {integrity: sha512-j61DHjsdUCKMXSdNLTOxcG701FWnF0jcqNNQi2iPCDxU8seN/sMxeh62dC++UiagCWq9ghTypX+Pcy7kX+QOeQ==}
 
   '@img/sharp-darwin-arm64@0.33.4':
     resolution: {integrity: sha512-p0suNqXufJs9t3RqLBO6vvrgr5OhgbWp76s5gTRvdmxmuv9E1rcaqGUsl3l4mKVmXPkTkTErXediAui4x+8PSA==}
@@ -2252,6 +2258,8 @@ snapshots:
 
   '@esbuild/win32-x64@0.21.5':
     optional: true
+
+  '@fontsource/roboto@5.0.13': {}
 
   '@img/sharp-darwin-arm64@0.33.4':
     optionalDependencies:

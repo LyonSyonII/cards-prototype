@@ -240,7 +240,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cards-prototype"
+name = "cards"
 version = "0.0.0"
 dependencies = [
  "serde",
