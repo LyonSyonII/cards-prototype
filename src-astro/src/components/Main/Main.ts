@@ -34,15 +34,16 @@ export class Main extends HTMLElement {
 
   private async connect() {
     const addr = this.connectInp.value;
-    await invoke("connect", { addr })
-      .then(() => {
-        this.mode = "connect";
+    try {
+      await invoke("connect", { addr });
+      this.mode = "connect";
 
-        this.print(`Connected with ${addr}`);
-        hideElements(this.connectInp, this.connectBtn, this.serveBtn);
-        showElements(this.input);
-      })
-      .catch((e) => this.print(e));
+      this.print(`Connected with ${addr}`);
+      hideElements(this.connectInp, this.connectBtn, this.serveBtn);
+      showElements(this.input);
+    } catch (error: any) {
+      this.print(error);
+    }
   }
 
   private async serve() {
@@ -52,14 +53,14 @@ export class Main extends HTMLElement {
 
       this.print(`Listening on ${addr}`);
       hideElements(this.connectInp, this.connectBtn, this.serveBtn);
-      showElements(this.input);
+      await once<string>("RECEIVE", ({ payload }) => {
+        this.print(`Connected with ${payload}`);
+        showElements(this.input);
+      });
     } catch (error: any) {
       this.print(error);
       return;
     }
-    await once<string>("RECEIVE", ({ payload }) => {
-      this.print(`Connected with ${payload}`);
-    });
   }
 
   private print(s: string, received: boolean = false) {

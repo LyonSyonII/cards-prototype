@@ -15,81 +15,65 @@ fn main() {
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn connect(window: Window, addr: &str) -> Result<(), String> {
-    let mut socket = std::net::TcpStream::connect(addr).map_err(err2str)?;
-    
-    let (tx, rx) = std::sync::mpsc::channel::<String>();
-    
-    let send_tx = tx.clone();
-    let send = window.listen("SEND", move |e| {
-        send_tx.send(e.payload().to_owned()).unwrap();
-    });
-    socket.set_nonblocking(true).map_err(err2str)?;
-    std::thread::spawn(move || {
-        let mut buf = Vec::with_capacity(u16::MAX as usize);
-        let err = loop {
-            if let Ok(s) = rx.try_recv() {
-                if let Err(e) = socket.write_all(s.as_bytes()) {
-                    break e.to_string();
-                }
-            } else if socket.read_to_end(&mut buf).is_ok() {
-                if let Err(e) = window.emit("RECEIVE", String::from_utf8_lossy(&buf)) {
-                    break e.to_string();
-                }
-            }
-        };
-        
-        println!("{err}");
-        window.unlisten(send);
-    });
-    
+    let socket = std::net::TcpStream::connect(addr).map_err(err2str)?;
+    std::thread::spawn(|| block_on_tcp("connect", window, socket));
     Ok(())
 }
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn serve(window: Window) -> Result<String, String> {
-    let local_ip = local_ip_address::local_ip().unwrap();
+    let local_ip = local_ip_address::local_ip().map_err(err2str)?;
     let listener = std::net::TcpListener::bind("0.0.0.0:0").map_err(err2str)?;
 
     let local_addr = {
-        let mut a = listener.local_addr().unwrap();
+        let mut a = listener.local_addr().map_err(err2str)?;
         a.set_ip(local_ip);
         a.to_string() 
     };
     println!("Listening on {local_addr}");
     
     std::thread::spawn(move || {
-        let (mut socket, addr) = listener.accept().unwrap();
+        let (socket, addr) = listener.accept().unwrap();
         println!("Accepted connection from {addr}");
-        window.emit("RECEIVE", addr.to_string()).unwrap();
-        
-        let (tx, rx) = std::sync::mpsc::channel::<String>();
-        let send_tx = tx.clone();
-        let send = window.listen("SEND", move |e| {
-            send_tx.send(e.payload().to_owned()).unwrap();
-        });
-        socket.set_nonblocking(true).unwrap();
-
-        let mut buf = Vec::with_capacity(u16::MAX as usize);
-        let err = loop {
-            if let Ok(s) = rx.try_recv() {
-                if let Err(e) = socket.write_all(s.as_bytes()) {
-                    break e.to_string();
-                }
-            } else if socket.read_to_end(&mut buf).is_ok() {
-                if let Err(e) = window.emit("RECEIVE", String::from_utf8_lossy(&buf)) {
-                    break e.to_string();
-                }
-            }
-        };
-        
-        println!("{err}");
-        window.unlisten(send);
+        window.emit("RECEIVE", addr.to_string()).handle_err(&window);
+        block_on_tcp("serve", window.clone(), socket).handle_err(&window);
     });
-
+    
     Ok(local_addr)
+}
+
+fn block_on_tcp(mode: &'static str, window: Window, mut socket: std::net::TcpStream) -> Result<(), String> {
+    let (tx, rx) = std::sync::mpsc::channel::<String>();
+    let send_tx = tx.clone();
+    window.listen("SEND", move |e| {
+        send_tx.send(e.payload().to_owned()).unwrap();
+    });
+    
+    let mut buf = Vec::with_capacity(u16::MAX as usize);
+    loop {
+        if let Ok(s) = rx.try_recv() {
+            socket.write_all(s.as_bytes()).handle_err(&window);
+        } else if socket.read_to_end(&mut buf).is_ok_and(|b| b > 0) {
+            let r = String::from_utf8_lossy(&buf);
+            window.emit("RECEIVE", &r).handle_err(&window);
+            println!("[{mode}] Received {r:?}");
+        }
+    };
 }
 
 fn err2str(err: impl std::error::Error) -> String {
     err.to_string()
+}
+
+trait ResultExt where Self: Sized {
+    fn handle_err(self, window: &Window);
+}
+
+impl<T, E: ToString> ResultExt for Result<T, E> {
+    fn handle_err(self, window: &Window) {
+        if let Err(e) = self {
+            window.emit("RECEIVE", e.to_string()).unwrap();
+        }
+    }
 }
