@@ -1,0 +1,35 @@
+---
+
+---
+
+<x-main>
+  <div>
+    <input id="connect-in" />
+    <button id="connect-btn">Connect</button>
+  </div>
+  <button id="serve-btn">Serve</button>
+
+  <input id="input" />
+  <pre id="output"></pre>
+</x-main>
+
+<style>
+  #input {
+    display: none;
+  }
+  #output {
+    font-family: monospace;
+    border: 1px solid black;
+    border-radius: 0.25rem;
+    padding: 1rem;
+
+    max-height: 100%;
+    overflow: scroll;
+  }
+</style>
+
+<script>
+  import { Main } from "./Main";
+  
+  customElements.define("x-main", Main);
+</script>

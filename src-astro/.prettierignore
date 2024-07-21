@@ -1,0 +1,6 @@
+.astro
+dist
+node_modules
+src-tauri
+README.md
+pnpm-lock.yaml
