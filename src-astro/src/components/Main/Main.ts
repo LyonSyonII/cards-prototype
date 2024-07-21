@@ -16,8 +16,11 @@ export class Main extends HTMLElement {
     this.connectBtn = this.querySelector<HTMLButtonElement>("#connect-btn")!;
     this.serveBtn = this.querySelector<HTMLButtonElement>("#serve-btn")!;
     this.input = this.querySelector<HTMLInputElement>("#input")!;
-    
-    this.connectInp.addEventListener("keyup", ({key}) => key === "Enter" && this.connect());
+
+    this.connectInp.addEventListener(
+      "keyup",
+      ({ key }) => key === "Enter" && this.connect(),
+    );
     this.connectBtn.addEventListener("click", async () => this.connect());
     this.serveBtn.addEventListener("click", async () => this.serve());
     this.input.addEventListener("keyup", async (event) => {
