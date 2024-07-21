@@ -8,13 +8,18 @@ import '@fontsource/roboto';
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<title>Cards</title>
 	</head>
 	<body>
-		<h1>Astro</h1>
-		<input id="greet-in" />
-		<button>Greet</button>
-		<p id="greet-out"></p>
+		<h1>Cards</h1>
+		<div>
+			<div>
+				<input id="connect-in" />
+				<button id="connect-btn">Connect</button>
+			</div>
+			<button id="serve-btn">Serve</button>
+			<pre id="output"></pre>
+		</div>
 	</body>
 </html>
 
@@ -22,9 +27,22 @@ import '@fontsource/roboto';
 	html {
 		font-family: 'Roboto';
 	}
+	h1 {
+		margin-left: auto;
+		margin-right: auto;
+	}
+	#output {
+		font-family: monospace;
+		border: 1px solid black;
+		border-radius: .25rem;
+		padding: 1rem;
+
+		max-height: 100%;
+		overflow: scroll;
+	}
 </style>
 
 <script>
 	import { main } from "./index";
-	main();
+	await main();
 </script>
