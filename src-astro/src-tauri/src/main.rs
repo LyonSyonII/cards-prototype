@@ -64,8 +64,8 @@ fn block_on_tcp(
             window.emit("RECEIVE", &s).unwrap();
             eprintln!("[{mode}:RECEIVE] Received {s:?}");
         }
-        std::thread::sleep(std::time::Duration::from_millis(1000));
-        println!("polling...");
+        std::thread::sleep(std::time::Duration::from_millis(100));
+        // println!("polling...");
     }
 }
 
@@ -94,7 +94,7 @@ fn read_msg<'b>(
         }
     }
     if len == 0 {
-        eprintln!("[{mode}:RECEIVE] Tried reading from socket");
+        // eprintln!("[{mode}:RECEIVE] Tried reading from socket");
         return Err(std::io::Error::new(
             std::io::ErrorKind::Other,
             "Read 0 bytes",
