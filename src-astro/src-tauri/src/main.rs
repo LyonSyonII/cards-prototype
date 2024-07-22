@@ -51,12 +51,12 @@ fn block_on_tcp(
     let (tx, rx) = std::sync::mpsc::channel::<String>();
 
     window.listen("SEND", move |e| {
-        eprintln!("[{mode}:SEND] {e:?}");
         tx.send(e.payload().to_owned()).unwrap();
     });
     socket.set_read_timeout(Some(std::time::Duration::from_millis(100))).unwrap();
     let mut buf = vec![0; u16::MAX as usize];
     loop {
+        let start = std::time::Instant::now();
         if let Ok(s) = rx.try_recv() {
             socket.write_all(s.as_bytes()).unwrap();
             eprintln!("[{mode}:SEND] Sent {s:?}");
@@ -64,6 +64,7 @@ fn block_on_tcp(
             window.emit("RECEIVE", &s).unwrap();
             eprintln!("[{mode}:RECEIVE] Received {s:?}");
         }
+        println!("[poll] {:?}", start.elapsed());
         // std::thread::sleep(std::time::Duration::from_millis(100));
         // println!("polling...");
     }

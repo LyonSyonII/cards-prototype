@@ -1,13 +1,15 @@
 import { invoke } from "@tauri-apps/api/core";
 import { emit, listen, once } from "@tauri-apps/api/event";
 
+type ConnectionMode = "serve" | "connect";
+
 export class Main extends HTMLElement {
   private readonly output: HTMLPreElement;
   private readonly connectInp: HTMLInputElement;
   private readonly connectBtn: HTMLButtonElement;
   private readonly serveBtn: HTMLButtonElement;
   private readonly input: HTMLInputElement;
-  private mode: "serve" | "connect" | undefined;
+  private mode: ConnectionMode | undefined;
 
   constructor() {
     super();
@@ -31,7 +33,7 @@ export class Main extends HTMLElement {
       await emit("SEND", this.input.value);
     });
     listen("RECEIVE", async ({ payload }: { payload: string }) => {
-      this.print(payload, true);
+      this.print(payload, { received: true });
     });
   }
 
@@ -45,7 +47,7 @@ export class Main extends HTMLElement {
       hideElements(this.connectInp, this.connectBtn, this.serveBtn);
       showElements(this.input);
     } catch (error: any) {
-      this.print(error);
+      this.print(error, { mode: "connect"} );
     }
   }
 
@@ -61,16 +63,16 @@ export class Main extends HTMLElement {
         showElements(this.input);
       });
     } catch (error: any) {
-      this.print(error);
+      this.print(error, { mode: "serve" });
       return;
     }
   }
-
-  private print(s: string, received: boolean = false) {
-    if (!this.mode) {
+  
+  private print(s: string, { mode, received }: { mode?: ConnectionMode, received?: boolean } = { received: false }) {
+    mode = this.mode || mode;
+    if (!mode) {
       return;
     }
-    let mode = this.mode;
     if (received) {
       mode = mode === "connect" ? "serve" : "connect";
     }
