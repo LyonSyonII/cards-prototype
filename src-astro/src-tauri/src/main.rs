@@ -50,24 +50,32 @@ fn block_on_tcp(
 ) -> Result<(), String> {
     let (tx, rx) = std::sync::mpsc::channel::<String>();
 
-    window.listen("SEND", move |e| {
+    let send_event = window.listen("SEND", move |e| {
         tx.send(e.payload().to_owned()).unwrap();
     });
     socket.set_read_timeout(Some(std::time::Duration::from_millis(100))).unwrap();
     let mut buf = vec![0; u16::MAX as usize];
     loop {
-        let start = std::time::Instant::now();
         if let Ok(s) = rx.try_recv() {
             socket.write_all(s.as_bytes()).unwrap();
             eprintln!("[{mode}:SEND] Sent {s:?}");
-        } else if let Ok(s) = read_msg(&mut socket, &mut buf, mode) {
-            window.emit("RECEIVE", &s).unwrap();
-            eprintln!("[{mode}:RECEIVE] Received {s:?}");
+        } else {
+            match read_msg(&mut socket, &mut buf, mode) {
+                Ok(s) => {
+                    window.emit("RECEIVE", &s).unwrap();
+                    eprintln!("[{mode}:RECEIVE] Received {s:?}");
+                },
+                Err(e) if e.kind() != std::io::ErrorKind::Other => {
+                    eprintln!("[{mode}:RECEIVE] {e:?}");
+                    window.emit("RECEIVE", e.to_string()).unwrap();
+                    break;
+                },
+                Err(_) => { }
+            }
         }
-        println!("[poll] {:?}", start.elapsed());
-        // std::thread::sleep(std::time::Duration::from_millis(100));
-        // println!("polling...");
     }
+    window.unlisten(send_event);
+    Ok(())
 }
 
 fn err2str(err: impl std::error::Error) -> String {

@@ -32,7 +32,6 @@
           fenix.complete.llvm-tools-preview
           fenix.targets.x86_64-pc-windows-gnu.latest.rust-std
           fenix.targets.x86_64-unknown-linux-gnu.latest.rust-std
-          
   
           curl
           wget
@@ -61,10 +60,10 @@
           nodePackages.pnpm
         ];
         RUST_SRC_PATH = "${pkgs.fenix.complete.rust-src}/lib/rustlib/src/rust/library";
-        # RUSTC_WRAPPER="sccache";
-        RUSTFLAGS=/* "-Zthreads=12 -Ctarget-cpu=native */ "-Clink-arg=-fuse-ld=mold";
+        RUSTC_WRAPPER="sccache";
+        RUSTFLAGS="-Zthreads=12 -Clink-arg=-fuse-ld=mold";
         MSRVFLAGS="-Clink-arg=-fuse-ld=mold"; # RUSTFLAGS=$MSRVFLAGS cargo msrv
-
+        
         LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath nativeBuildInputs;
       };
     });
