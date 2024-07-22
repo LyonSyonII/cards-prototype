@@ -70,12 +70,20 @@ fn block_on_tcp(
                     window.emit("RECEIVE", e.to_string()).unwrap();
                     break;
                 },
-                Err(_) => { }
+                Err(_) => {
+                    
+                }
             }
         }
     }
     window.unlisten(send_event);
     Ok(())
+}
+
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+enum Message {
+    Other(String),
+    Shutdown,
 }
 
 fn err2str(err: impl std::error::Error) -> String {

@@ -33,7 +33,7 @@ export class Main extends HTMLElement {
       await emit("SEND", this.input.value);
     });
     listen("RECEIVE", async ({ payload }: { payload: string }) => {
-      this.print(payload, { received: true });
+      this.print(JSON.parse(payload), { received: true });
     });
   }
 
