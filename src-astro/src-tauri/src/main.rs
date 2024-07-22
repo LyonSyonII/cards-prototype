@@ -1,12 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{
-    io::{Read, Write},
-    net::Ipv4Addr,
-    str::FromStr,
-};
-use tauri::{Emitter as _, Event, Listener as _, Window};
+use std::io::{Read, Write};
+use tauri::{Emitter as _, Listener as _, Window};
 
 fn main() {
     tauri::Builder::default()
@@ -35,11 +31,11 @@ fn serve(window: Window) -> Result<String, String> {
         a.set_ip(local_ip);
         a.to_string()
     };
-    println!("Listening on {local_addr}");
+    eprintln!("Listening on {local_addr}");
 
     std::thread::spawn(move || {
         let (socket, addr) = listener.accept().unwrap();
-        println!("Accepted connection from {addr}");
+        eprintln!("Accepted connection from {addr}");
         window.emit("RECEIVE", addr.to_string()).unwrap();
         block_on_tcp("serve", window.clone(), socket).unwrap();
     });
@@ -53,20 +49,22 @@ fn block_on_tcp(
     mut socket: std::net::TcpStream,
 ) -> Result<(), String> {
     let (tx, rx) = std::sync::mpsc::channel::<String>();
-    let send_tx = tx.clone();
+
     window.listen("SEND", move |e| {
-        send_tx.send(e.payload().to_owned()).unwrap();
+        eprintln!("[{mode}:SEND] {e:?}");
+        tx.send(e.payload().to_owned()).unwrap();
     });
 
-    let mut buf = Vec::with_capacity(u16::MAX as usize);
+    let mut buf = vec![0; u16::MAX as usize];
     loop {
         if let Ok(s) = rx.try_recv() {
             socket.write_all(s.as_bytes()).unwrap();
-        } else if socket.read_to_end(&mut buf).is_ok_and(|b| b > 0) {
-            let r = String::from_utf8_lossy(&buf);
-            window.emit("RECEIVE", &r).unwrap();
-            println!("[{mode}] Received {r:?}");
+            eprintln!("[{mode}] Sent {s:?}");
+        } else if let Ok(s) = read_msg(&mut socket, &mut buf, mode) {
+            window.emit("RECEIVE", &s).unwrap();
+            eprintln!("[{mode}:RECEIVE] {s:?}");
         }
+        std::thread::sleep(std::time::Duration::from_millis(1000));
     }
 }
 
@@ -74,17 +72,31 @@ fn err2str(err: impl std::error::Error) -> String {
     err.to_string()
 }
 
-trait ResultExt
-where
-    Self: Sized,
-{
-    fn handle_err(self, window: &Window);
-}
-
-impl<T, E: ToString> ResultExt for Result<T, E> {
-    fn handle_err(self, window: &Window) {
-        if let Err(e) = self {
-            window.emit("RECEIVE", e.to_string()).unwrap();
+fn read_msg<'b>(
+    socket: &mut std::net::TcpStream,
+    buf: &'b mut [u8],
+    mode: &'static str,
+) -> std::io::Result<std::borrow::Cow<'b, str>> {
+    let mut len = 0;
+    loop {
+        match socket.read(&mut buf[len..]) {
+            Ok(0) => break,
+            Ok(n) => {
+                eprintln!("[{mode}:RECEIVE] Read {n} bytes");
+                len += n
+            }
+            Err(e) => {
+                eprintln!("[{mode}:RECEIVE] {e}");
+                return Err(e);
+            }
         }
     }
+    if len == 0 {
+        eprintln!("[{mode}:RECEIVE] Tried reading from socket");
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "Read 0 bytes",
+        ));
+    }
+    Ok(String::from_utf8_lossy(&buf[..len]))
 }

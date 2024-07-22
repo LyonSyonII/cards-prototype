@@ -10,7 +10,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "tauri": "tauri",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write . && pushd src-tauri && cargo fmt && popd"
   },
   "dependencies": {
     "@astrojs/check": "^0.8.2",

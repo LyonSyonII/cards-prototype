@@ -19,7 +19,7 @@ local-ip-address = "0.6.1"
 # tokio = { version = "1.38.1", features = ["macros", "rt-multi-thread", "net"] }
 
 [profile.release]
-opt-level = 3       # Optimize for size.
+opt-level = 3
 lto = "thin"
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 panic = "abort"     # Abort on panic
