@@ -59,10 +59,10 @@ fn block_on_tcp(
     loop {
         if let Ok(s) = rx.try_recv() {
             socket.write_all(s.as_bytes()).unwrap();
-            eprintln!("[{mode}] Sent {s:?}");
+            eprintln!("[{mode}:SEND] Sent {s:?}");
         } else if let Ok(s) = read_msg(&mut socket, &mut buf, mode) {
             window.emit("RECEIVE", &s).unwrap();
-            eprintln!("[{mode}:RECEIVE] {s:?}");
+            eprintln!("[{mode}:RECEIVE] Received {s:?}");
         }
         std::thread::sleep(std::time::Duration::from_millis(1000));
         println!("polling...");
@@ -82,12 +82,13 @@ fn read_msg<'b>(
     loop {
         match socket.read(&mut buf[len..]) {
             Ok(0) => break,
+            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
             Ok(n) => {
                 eprintln!("[{mode}:RECEIVE] Read {n} bytes");
                 len += n
             }
             Err(e) => {
-                eprintln!("[{mode}:RECEIVE] {e}");
+                eprintln!("[{mode}:RECEIVE] {e:?}");
                 return Err(e);
             }
         }

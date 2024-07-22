@@ -61,7 +61,7 @@
           nodePackages.pnpm
         ];
         RUST_SRC_PATH = "${pkgs.fenix.complete.rust-src}/lib/rustlib/src/rust/library";
-        RUSTC_WRAPPER="sccache";
+        # RUSTC_WRAPPER="sccache";
         RUSTFLAGS="-Zthreads=12 -Ctarget-cpu=native -Clink-arg=-fuse-ld=mold";
         MSRVFLAGS="-Clink-arg=-fuse-ld=mold"; # RUSTFLAGS=$MSRVFLAGS cargo msrv
 
