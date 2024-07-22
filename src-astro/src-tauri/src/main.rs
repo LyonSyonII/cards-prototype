@@ -54,7 +54,7 @@ fn block_on_tcp(
         eprintln!("[{mode}:SEND] {e:?}");
         tx.send(e.payload().to_owned()).unwrap();
     });
-
+    socket.set_read_timeout(Some(std::time::Duration::from_millis(100))).unwrap();
     let mut buf = vec![0; u16::MAX as usize];
     loop {
         if let Ok(s) = rx.try_recv() {
@@ -65,6 +65,7 @@ fn block_on_tcp(
             eprintln!("[{mode}:RECEIVE] {s:?}");
         }
         std::thread::sleep(std::time::Duration::from_millis(1000));
+        println!("polling...");
     }
 }
 
