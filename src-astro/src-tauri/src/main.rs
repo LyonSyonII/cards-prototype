@@ -64,7 +64,7 @@ fn block_on_tcp(
             window.emit("RECEIVE", &s).unwrap();
             eprintln!("[{mode}:RECEIVE] Received {s:?}");
         }
-        std::thread::sleep(std::time::Duration::from_millis(100));
+        // std::thread::sleep(std::time::Duration::from_millis(100));
         // println!("polling...");
     }
 }
