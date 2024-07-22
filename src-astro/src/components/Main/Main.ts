@@ -27,10 +27,12 @@ export class Main extends HTMLElement {
     this.serveBtn.addEventListener("click", async () => this.serve());
     this.input.addEventListener("keyup", async (event) => {
       if (event.key !== "Enter") return;
-
       event.preventDefault();
-      this.print(this.input.value);
-      await emit("SEND", this.input.value);
+
+      const value = this.input.value;
+      this.input.value = "";
+      this.print(value);
+      await emit("SEND", value);
     });
     listen("RECEIVE", async ({ payload }: { payload: string }) => {
       this.print(JSON.parse(payload), { received: true });
